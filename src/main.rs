@@ -15,16 +15,12 @@ async fn main() -> std::io::Result<()> {
     let db = MongoRepo::init().await;
     let db_data = Data::new(db);
 
-    let firebase_api_key = match env::var("FIREBASEWEB  API") {
+    let firebase_api_key = match env::var("FIREBASEWEBAPI") {
         Ok(v) => v.to_string(),
         Err(_) => format!("Error loading env variable"),
     };
 
-    let key = firebase_api_key.clone();
-
-    println!("{}", String::from(key));
-
-    let auth_service = FireAuth::new(firebase_api_key);
+    let auth_service = FireAuth::new(firebase_api_key.clone());
     let auth_data = Data::new(auth_service);
 
     HttpServer::new(move || {
