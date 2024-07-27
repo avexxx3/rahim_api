@@ -1,16 +1,18 @@
-use std::env;
+use std::{borrow::Borrow, env};
 extern crate dotenv;
 use dotenv::dotenv;
 
+use futures::TryStreamExt;
 use mongodb::{
-    bson::extjson::de::Error,
+    bson::{doc, extjson::de::Error},
     results::InsertOneResult,
     Client, Collection,
 };
-use crate::models::user_model::User;
+use crate::models::{profile_model::Profile, user_model::User};
 
 pub struct MongoRepo {
-    user_col: Collection<User>
+    user_col: Collection<User>,
+    profile_col: Collection<Profile>
 }
 
 impl MongoRepo {
@@ -24,10 +26,11 @@ impl MongoRepo {
         let client = Client::with_uri_str(uri).await.ok().expect("Error connected to client");
         let db = client.database("Populace"); 
         let user_col: Collection<User> = db.collection("User");
-        MongoRepo { user_col }
+        let profile_col: Collection<Profile> = db.collection("Profile");
+        MongoRepo { user_col, profile_col }
     }
 
-    pub async fn create_user(&self, new_user: User) -> Result<InsertOneResult, Error> {
+    pub async fn initalize_user(&self, new_user: User) -> Result<InsertOneResult, Error> {
         let new_doc = User {
             id: None,
             email: new_user.email
@@ -40,5 +43,36 @@ impl MongoRepo {
             .ok()
             .expect("Error creating user");
         Ok(user)
+    }
+
+    pub async fn create_profile(&self, new_profile: Profile) -> Result<InsertOneResult, Error> {
+        let user = self
+            .profile_col
+            .insert_one(new_profile, None)
+            .await
+            .ok()
+            .expect("Error creating user");
+        Ok(user)
+    }
+
+    pub async fn get_profiles(&self) -> Result<Vec<Profile>, Error> {
+        let filter = doc! {"public": true};
+
+        let mut cursors = self
+            .profile_col
+            .find(filter, None)
+            .await
+            .ok()
+            .expect("Error getting list of users");
+        let mut users: Vec<Profile> = Vec::new();
+        while let Some(user) = cursors
+            .try_next()
+            .await
+            .ok()
+            .expect("Error mapping through cursor")
+        {
+            users.push(user)
+        }
+        Ok(users)
     }
 }

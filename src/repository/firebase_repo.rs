@@ -53,7 +53,7 @@ impl FirebaseRepo {
         {
             Ok(response) => {
                 match db
-                    .create_user(User {
+                    .initalize_user(User {
                         id: None,
                         email: credentials.email,
                     })
