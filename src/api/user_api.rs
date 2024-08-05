@@ -1,6 +1,6 @@
-use crate::{models::{profile_model::Profile, user_model::User}, repository::{firebase_repo::FirebaseRepo, mongodb_repo::MongoRepo}};
+use crate::{models::{profile_model::Profile}, repository::{firebase_repo::FirebaseRepo, mongodb_repo::MongoRepo}};
 use actix_web::{
-    cookie::Cookie, post, web::{Data, Json}, HttpRequest, HttpResponse
+    cookie::Cookie, post, get, web::{Data, Json}, HttpRequest, HttpResponse
 };              
 
 #[post("/create_profile")]     
@@ -26,7 +26,8 @@ pub async fn create_profile(db: Data<MongoRepo>, firebase: Data<FirebaseRepo>, n
         whereabouts: new_profile.clone().whereabouts,
         qualifications: new_profile.clone().qualifications,
         appearance: new_profile.clone().appearance,
-        age_range: new_profile.clone().age_range,
+        age_range_min: new_profile.clone().age_range_min,
+        age_range_max: new_profile.clone().age_range_max,
     };
 
     match db.create_profile(new_profile).await {
@@ -35,7 +36,7 @@ pub async fn create_profile(db: Data<MongoRepo>, firebase: Data<FirebaseRepo>, n
     }
 }
 
-#[post("/get_profiles")]     
+#[get("/get_profiles")]
 pub async fn get_profiles(db: Data<MongoRepo>, firebase: Data<FirebaseRepo>, request: HttpRequest) -> HttpResponse {
     let mut cookie = Cookie::new("", "");
 

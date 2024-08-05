@@ -36,7 +36,10 @@ impl FirebaseRepo {
             .sign_in_email(&credentials.email, &credentials.password, true)
             .await
         {
-            Ok(response) => HttpResponse::Ok().json(response),
+            Ok(response) => {
+                println!("A");
+                return HttpResponse::Ok().json(response)}
+                ,
             Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
         }
     }

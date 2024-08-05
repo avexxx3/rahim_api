@@ -15,7 +15,8 @@ pub struct Profile {
     pub whereabouts: Whereabouts,
     pub qualifications: Qualifications,
     pub appearance: Appearance,
-    pub age_range: Range<i32>
+    pub age_range_min: i32,
+    pub age_range_max: i32
 }           
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -32,7 +33,7 @@ pub struct Appearance {
     pub height: i32,
     pub weight: i32,
     pub skin_color: String,
-    pub looksmaxxed: String,
+    pub fit: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -47,13 +48,13 @@ pub struct Qualifications {
     pub qualificiation: String,
     pub university: String,
     pub occupation: String,
-    pub monthly_income_min: Range<i32>
+    pub monthly_income: i32
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Family {
     pub divorced: bool,
-    pub children: i32,
+    pub children: bool,
     pub parents: bool,
     pub siblings: bool
 }

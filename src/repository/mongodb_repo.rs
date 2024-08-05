@@ -1,4 +1,4 @@
-use std::{borrow::Borrow, env};
+use std::{env};
 extern crate dotenv;
 use dotenv::dotenv;
 
@@ -24,7 +24,7 @@ impl MongoRepo {
         };  
 
         let client = Client::with_uri_str(uri).await.ok().expect("Error connected to client");
-        let db = client.database("Populace"); 
+        let db = client.database("Populace");
         let user_col: Collection<User> = db.collection("User");
         let profile_col: Collection<Profile> = db.collection("Profile");
         MongoRepo { user_col, profile_col }
