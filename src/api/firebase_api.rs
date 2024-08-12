@@ -15,7 +15,6 @@ pub async fn sign_in(firebase: Data<FirebaseRepo>, new_user: Json<CredentialsReq
         email: new_user.email.clone(),
         password: new_user.password.clone()
     };
-    
     return firebase.sign_in(data).await;    
 }
 

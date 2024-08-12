@@ -30,10 +30,7 @@ pub async fn create_profile(db: Data<MongoRepo>, firebase: Data<FirebaseRepo>, n
         age_range_max: new_profile.clone().age_range_max,
     };
 
-    match db.create_profile(new_profile).await {
-        Ok(response) => HttpResponse::Ok().cookie(cookie).json(response),
-        Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
-    }
+    db.manage_profile(new_profile, cookie).await
 }
 
 #[get("/get_profiles")]
