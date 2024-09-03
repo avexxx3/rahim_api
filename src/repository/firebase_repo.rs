@@ -6,6 +6,7 @@ use actix_web::{
     HttpRequest, HttpResponse,
 };
 use dotenv::dotenv;
+use mongodb::bson::Array;
 
 use crate::models::{firebase_model::CredentialsRequest, user_model::User};
 use firebase_auth_sdk::FireAuth;
@@ -37,9 +38,18 @@ impl FirebaseRepo {
             .await
         {
             Ok(response) => {
-                println!("A");
-                return HttpResponse::Ok().json(response)}
-                ,
+                let session_id = Cookie::new("session_id", response.id_token);
+                let refresh_id = match response.refresh_token {
+                    Some(refresh_token) => Cookie::new("refresh_id", refresh_token),
+                    None => Cookie::new("", ""),
+                };
+                
+                return HttpResponse::Ok()
+                .cookie(session_id)
+                .cookie(refresh_id)
+                .finish()
+                
+            }
             Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
         }
     }
@@ -55,14 +65,22 @@ impl FirebaseRepo {
             .await
         {
             Ok(response) => {
-                match db
+                match db        
                     .initalize_user(User {
                         id: None,
                         email: credentials.email,
                     })
                     .await
                 {
-                    Ok(_) => HttpResponse::Ok().json(response),
+                    Ok(_) => {
+                    let session_id = Cookie::new("session_id", response.id_token);
+                    let refresh_id = Cookie::new("refresh_id", response.refresh_token);
+
+                    return HttpResponse::Ok()
+                    .cookie(session_id)
+                    .cookie(refresh_id)
+                    .finish()
+                    },
                     Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
                 }
             }
