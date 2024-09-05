@@ -1,10 +1,21 @@
-use crate::{models::{profile_model::Profile}, repository::{firebase_repo::FirebaseRepo, mongodb_repo::MongoRepo}};
+use crate::{
+    models::profile_model::Profile,
+    repository::{firebase_repo::FirebaseRepo, mongodb_repo::MongoRepo},
+};
 use actix_web::{
-    cookie::Cookie, post, get, web::{Data, Json}, HttpRequest, HttpResponse
-};              
+    cookie::Cookie,
+    get, post,
+    web::{Data, Json},
+    HttpRequest, HttpResponse,
+};
 
-#[post("/create_profile")]     
-pub async fn create_profile(db: Data<MongoRepo>, firebase: Data<FirebaseRepo>, new_profile: Json<Profile>, request: HttpRequest) -> HttpResponse {
+#[post("/create_profile")]
+pub async fn create_profile(
+    db: Data<MongoRepo>,
+    firebase: Data<FirebaseRepo>,
+    new_profile: Json<Profile>,
+    request: HttpRequest,
+) -> HttpResponse {
     let mut cookie = Cookie::new("", "");
     let mut email = "".to_string();
 
@@ -12,7 +23,7 @@ pub async fn create_profile(db: Data<MongoRepo>, firebase: Data<FirebaseRepo>, n
         Ok(response) => {
             email = response.1;
             cookie = response.0;
-        },
+        }
         Err(response) => return response,
     }
 
@@ -34,13 +45,17 @@ pub async fn create_profile(db: Data<MongoRepo>, firebase: Data<FirebaseRepo>, n
 }
 
 #[get("/get_profiles")]
-pub async fn get_profiles(db: Data<MongoRepo>, firebase: Data<FirebaseRepo>, request: HttpRequest) -> HttpResponse {
+pub async fn get_profiles(
+    db: Data<MongoRepo>,
+    firebase: Data<FirebaseRepo>,
+    request: HttpRequest,
+) -> HttpResponse {
     let mut cookie = Cookie::new("", "");
 
     match firebase.fetch_email(request).await {
         Ok(response) => {
             cookie = response.0;
-        },
+        }
         Err(response) => return response,
     }
 
