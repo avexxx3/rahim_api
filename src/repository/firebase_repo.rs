@@ -38,15 +38,16 @@ impl FirebaseRepo {
             .await
         {
             Ok(response) => {
-                let session_id = Cookie::new("session_id", response.id_token);
+                let session_id = Cookie::build("session_id", response.id_token).domain("rahim-api.onrender.com").finish();
                 let refresh_id = match response.refresh_token {
-                    Some(refresh_token) => Cookie::new("refresh_id", refresh_token),
+                    Some(refresh_token) => Cookie::build("refresh_id", refresh_token).domain("rahim-api.onrender.com").finish(),
                     None => Cookie::new("", ""),
                 };
                 
                 return HttpResponse::Ok()
                 .cookie(session_id)
                 .cookie(refresh_id)
+                .append_header(("Access-Control-Allow-Origin", "*"))
                 .finish()
                 
             }
@@ -55,7 +56,7 @@ impl FirebaseRepo {
     }
 
     pub async fn sign_up(
-        &self,
+        &self,  
         credentials: CredentialsRequest,
         db: Data<MongoRepo>,
     ) -> HttpResponse {
@@ -73,12 +74,13 @@ impl FirebaseRepo {
                     .await
                 {
                     Ok(_) => {
-                    let session_id = Cookie::new("session_id", response.id_token);
-                    let refresh_id = Cookie::new("refresh_id", response.refresh_token);
+                    let session_id = Cookie::build("session_id", response.id_token).domain("rahim-api.onrender.com").finish();
+                    let refresh_id = Cookie::build("refresh_id", response.refresh_token).domain("rahim-api.onrender.com").finish();
 
                     return HttpResponse::Ok()
                     .cookie(session_id)
                     .cookie(refresh_id)
+                    .append_header(("Access-Control-Allow-Origin", "*"))
                     .finish()
                     },
                     Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
