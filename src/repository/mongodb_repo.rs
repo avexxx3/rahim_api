@@ -57,7 +57,7 @@ impl MongoRepo {
 
         match self.create_profile(new_profile).await {
             Ok(response) => HttpResponse::Ok().cookie(cookie).json(response),
-            Err(err) => HttpResponse::InternalServerError().body(err.to_string()),  
+            Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
         }
     }
 
@@ -71,7 +71,7 @@ impl MongoRepo {
             .expect("Error deleting user");
     }
 
-    pub async fn create_profile(&self, new_profile: Profile) -> Result<InsertOneResult, Error>   {
+    pub async fn create_profile(&self, new_profile: Profile) -> Result<InsertOneResult, Error> {
         let user = self
             .profile_col
             .insert_one(new_profile, None)
@@ -101,5 +101,18 @@ impl MongoRepo {
         }
 
         Ok(users)
+    }
+
+    pub async fn get_profile(&self, email: String) -> Result<Profile, Error> {
+        let filter = doc! {"public": true, "email": email};
+
+        let mut user = self
+            .profile_col
+            .find_one(filter, None)
+            .await
+            .ok()
+            .expect("Error")
+            .expect("Error getting user");
+        Ok(user)
     }
 }

@@ -72,6 +72,28 @@ pub async fn create_profile(
     db.manage_profile(new_profile, cookie).await
 }
 
+#[get("/get_profile")]
+pub async fn get_profile(
+    db: Data<MongoRepo>,
+    firebase: Data<FirebaseRepo>,
+    request: HttpRequest,
+    email: String,
+) -> HttpResponse {
+    let mut cookie = Cookie::new("", "");
+
+    match firebase.fetch_email(request).await {
+        Ok(response) => {
+            cookie = response.0;
+        }
+        Err(response) => return response,
+    }
+
+    match db.get_profile(email).await {
+        Ok(response) => HttpResponse::Ok().cookie(cookie).json(response),
+        Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
+    }
+}
+
 #[get("/get_profiles")]
 pub async fn get_profiles(
     db: Data<MongoRepo>,
