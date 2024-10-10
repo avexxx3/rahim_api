@@ -97,7 +97,7 @@ impl FirebaseRepo {
         let mut session_id = FirebaseRepo::extract_session_id(request.clone());
 
         if session_id.is_empty() {
-            return Err(HttpResponse::InternalServerError().body("Failed to extract session ID"));
+            return Err(HttpResponse::InternalServerError().body("NO_SESSION"));
         }
 
         let mut email = self.verify_session_id(&session_id).await;
@@ -106,17 +106,13 @@ impl FirebaseRepo {
             let refresh_id = FirebaseRepo::extract_refresh_id(request.clone());
 
             if refresh_id == "null" {
-                return Err(
-                    HttpResponse::InternalServerError().body("Failed to extract refresh ID")
-                );
+                return Err(HttpResponse::InternalServerError().body("NO_SESSION"));
             }
 
             let refresh_response = self.refresh_session_id(refresh_id).await;
 
             if refresh_response == "null" {
-                return Err(
-                    HttpResponse::InternalServerError().body("Failed to refresh session ID")
-                );
+                return Err(HttpResponse::InternalServerError().body("NO_SESSION"));
             }
 
             session_id = refresh_response.clone();
