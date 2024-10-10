@@ -77,13 +77,14 @@ pub async fn get_profile(
     db: Data<MongoRepo>,
     firebase: Data<FirebaseRepo>,
     request: HttpRequest,
-    email: String,
 ) -> HttpResponse {
     let mut cookie = Cookie::new("", "");
+    let mut email = "".to_string();
 
     match firebase.fetch_email(request).await {
         Ok(response) => {
             cookie = response.0;
+            email = response.1;
         }
         Err(response) => return response,
     }
