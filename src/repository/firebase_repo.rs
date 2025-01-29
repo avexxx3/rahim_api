@@ -36,9 +36,9 @@ impl FirebaseRepo {
             .await
         {
             Ok(response) => {
-                let session_id = format!("session_id={}; Partitioned; SameSite=None;", response.id_token);
+                let session_id = format!("session_id={}; Partitioned; SameSite=None; Secure;", response.id_token);
                 let refresh_id = match response.refresh_token {
-                    Some(refresh_token) => format!("refresh_token={}; Partitioned; SameSite=None;", refresh_token),
+                    Some(refresh_token) => format!("refresh_token={}; Partitioned; SameSite=None; Secure;", refresh_token),
                     None => "".to_string()
                 };
 
@@ -72,8 +72,8 @@ impl FirebaseRepo {
                 {
                     
                     Ok(_) => {
-                        let session_id = format!("session_id={}; Partitioned; SameSite=None;", response.id_token);
-                        let refresh_id = format!("refresh_id={}; Partitioned; SameSite=None;", response.refresh_token);
+                        let session_id = format!("session_id={}; Partitioned; SameSite=None; Secure;", response.id_token);
+                        let refresh_id = format!("refresh_id={}; Partitioned; SameSite=None; Secure;", response.refresh_token);
 
                         return HttpResponse::Ok()
                             .append_header(("Set-Cookie", session_id))
@@ -118,7 +118,7 @@ impl FirebaseRepo {
             email = self.verify_session_id(&session_id).await
         }
 
-        let session_id = format!("session_id={}; Partitioned; SameSite=None;", session_id);
+        let session_id = format!("session_id={}; Partitioned; SameSite=None; Secure;", session_id);
 
         return Ok((session_id, email));
     }
