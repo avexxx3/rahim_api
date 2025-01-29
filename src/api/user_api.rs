@@ -5,7 +5,6 @@ use crate::{
     repository::{firebase_repo::FirebaseRepo, mongodb_repo::MongoRepo},
 };
 use actix_web::{
-    cookie::Cookie,
     get, post,
     web::{Data, Json},
     HttpRequest, HttpResponse,
@@ -18,20 +17,20 @@ pub async fn create_profile(
     new_profile: Json<ProfileRequest>,
     request: HttpRequest,
 ) -> HttpResponse {
-    let mut cookie = Cookie::new("", "");
-    let mut email = "".to_string();
+    let mut session_id: Option<String> = None;
+    let mut email: Option<String> = None;
 
     match firebase.fetch_email(request).await {
         Ok(response) => {
-            email = response.1;
-            cookie = response.0;
+            session_id.replace(response.0);
+            email.replace(response.1);
         }
         Err(response) => return response,
     }
 
     let new_profile = Profile {
         id: None,
-        email: email,
+        email: email.unwrap(),
         public: new_profile.clone().public,
         about_oneself: new_profile.clone().about_oneself,
         bio_data: BioData {
@@ -69,7 +68,7 @@ pub async fn create_profile(
         },
     };
 
-    db.manage_profile(new_profile, cookie).await
+    db.manage_profile(new_profile, session_id.unwrap()).await
 }
 
 #[get("/get_profile")]
@@ -78,19 +77,20 @@ pub async fn get_profile(
     firebase: Data<FirebaseRepo>,
     request: HttpRequest,
 ) -> HttpResponse {
-    let mut cookie = Cookie::new("", "");
-    let mut email = "".to_string();
+    let mut session_id: Option<String> = None;
+    let mut email: Option<String> = None;
 
     match firebase.fetch_email(request).await {
         Ok(response) => {
-            cookie = response.0;
-            email = response.1;
+            session_id.replace(response.0);
+            email.replace(response.1);
         }
         Err(response) => return response,
     }
 
-    match db.get_profile(email).await {
-        Ok(response) => HttpResponse::Ok().cookie(cookie).json(response),
+
+    match db.get_profile(email.unwrap()).await {
+        Ok(response) => HttpResponse::Ok().append_header(("Set-Cookie", session_id.unwrap())).json(response),
         Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
     }
 }
@@ -101,17 +101,17 @@ pub async fn get_profiles(
     firebase: Data<FirebaseRepo>,
     request: HttpRequest,
 ) -> HttpResponse {
-    let mut cookie = Cookie::new("", "");
+    let mut session_id: Option<String> = None;
 
     match firebase.fetch_email(request).await {
         Ok(response) => {
-            cookie = response.0;
+            session_id.replace(response.0);
         }
         Err(response) => return response,
     }
 
     match db.get_profiles().await {
-        Ok(response) => HttpResponse::Ok().cookie(cookie).json(response),
+        Ok(response) => HttpResponse::Ok().append_header(("Set-Cookie", session_id.unwrap())).json(response),
         Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
     }
 }

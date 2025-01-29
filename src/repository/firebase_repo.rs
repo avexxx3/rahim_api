@@ -1,12 +1,10 @@
 use std::env;
 extern crate dotenv;
 use actix_web::{
-    cookie::{Cookie, CookieBuilder},
     web::Data,
     HttpRequest, HttpResponse,
 };
 use dotenv::dotenv;
-use mongodb::bson::Array;
 
 use crate::models::{firebase_model::CredentialsRequest, user_model::User};
 use firebase_auth_sdk::FireAuth;
@@ -38,15 +36,15 @@ impl FirebaseRepo {
             .await
         {
             Ok(response) => {
-                let session_id = Cookie::new("session_id", response.id_token);
+                let session_id = format!("{}; Partitioned;", response.id_token);
                 let refresh_id = match response.refresh_token {
-                    Some(refresh_token) => Cookie::new("refresh_id", refresh_token),
-                    None => Cookie::new("", ""),
+                    Some(refresh_token) => format!("{}; Partitioned;", refresh_token),
+                    None => "".to_string()
                 };
 
                 return HttpResponse::Ok()
-                    .cookie(session_id)
-                    .cookie(refresh_id)
+                    .append_header(("Set-Cookie", session_id))
+                    .append_header(("Set-Cookie", refresh_id))
                     .append_header(("Access-Control-Allow-Origin", "*"))
                     .finish();
             }
@@ -73,12 +71,12 @@ impl FirebaseRepo {
                     .await
                 {
                     Ok(_) => {
-                        let session_id = Cookie::new("session_id", response.id_token);
-                        let refresh_id = Cookie::new("refresh_id", response.refresh_token);
+                        let session_id = format!("{}; Partitioned;", response.id_token);
+                        let refresh_id = format!("{}; Partitioned;", response.refresh_token);
 
                         return HttpResponse::Ok()
-                            .cookie(session_id)
-                            .cookie(refresh_id)
+                            .append_header(("Set-Cookie", session_id))
+                            .append_header(("Set-Cookie", refresh_id))
                             .append_header(("Access-Control-Allow-Origin", "*"))
                             .append_header(("Access-Control-Allow-Credentials", "true"))
                             .finish();
@@ -93,7 +91,7 @@ impl FirebaseRepo {
     pub async fn fetch_email(
         &self,
         request: HttpRequest,
-    ) -> Result<(Cookie, String), HttpResponse> {
+    ) -> Result<(String, String), HttpResponse> {
         let mut session_id = FirebaseRepo::extract_session_id(request.clone());
 
         if session_id.is_empty() {
@@ -119,9 +117,9 @@ impl FirebaseRepo {
             email = self.verify_session_id(&session_id).await
         }
 
-        let cookie = CookieBuilder::new("session_id".to_string(), session_id).finish();
+        let session_id = format!("{}; Partitioned;", session_id);
 
-        return Ok((cookie, email));
+        return Ok((session_id, email));
     }
 
     async fn verify_session_id(&self, session_id: &String) -> String {

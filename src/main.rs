@@ -30,6 +30,7 @@ async fn main() -> std::io::Result<()> {
             .service(create_profile)
             .service(get_profiles)
             .service(get_profile)
+            .service(temp)
     })
     .bind(("0.0.0.0", 10000))?
     .run()

@@ -1,13 +1,13 @@
 use std::env;
 extern crate dotenv;
-use actix_web::{cookie::Cookie, HttpResponse};
+use actix_web::HttpResponse;
 use dotenv::dotenv;
 
 use crate::models::{profile_model::Profile, user_model::User};
 use futures::TryStreamExt;
 use mongodb::{
-    bson::{doc, extjson::de::Error, oid::ObjectId},
-    results::{DeleteResult, InsertOneResult},
+    bson::{doc, extjson::de::Error},
+    results::InsertOneResult,
     Client, Collection,
 };
 
@@ -52,19 +52,18 @@ impl MongoRepo {
         Ok(user)
     }
 
-    pub async fn manage_profile(&self, new_profile: Profile, cookie: Cookie<'_>) -> HttpResponse {
+    pub async fn manage_profile(&self, new_profile: Profile, session_id: String) -> HttpResponse {
         self.delete_user(&new_profile.clone().email).await;
 
         match self.create_profile(new_profile).await {
-            Ok(response) => HttpResponse::Ok().cookie(cookie).json(response),
+            Ok(response) => HttpResponse::Ok().append_header(("Set-Cookie", session_id)).json(response),
             Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
         }
     }
 
     pub async fn delete_user(&self, email: &String) {
         let filter = doc! {"email": email};
-        let user_detail = self
-            .profile_col
+        self.profile_col
             .delete_one(filter, None)
             .await
             .ok()
@@ -106,7 +105,7 @@ impl MongoRepo {
     pub async fn get_profile(&self, email: String) -> Result<Profile, Error> {
         let filter = doc! {"public": true, "email": email};
 
-        let mut user = self
+        let user = self
             .profile_col
             .find_one(filter, None)
             .await
