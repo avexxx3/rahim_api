@@ -35,6 +35,7 @@ pub async fn create_profile(
         about_oneself: new_profile.clone().about_oneself,
         bio_data: BioData {
             name: new_profile.clone().name,
+            age: new_profile.clone().age,
             is_male: new_profile.is_male,
             nationality: new_profile.clone().nationality,
             native_language: new_profile.clone().native_language,
@@ -58,8 +59,6 @@ pub async fn create_profile(
             skin_color: new_profile.clone().skin_color,
             fit: new_profile.clone().fit,
         },
-        age_range_min: new_profile.clone().age_range_min,
-        age_range_max: new_profile.clone().age_range_max,
         family: Family {
             divorced: new_profile.clone().divorced,
             children: new_profile.clone().children,

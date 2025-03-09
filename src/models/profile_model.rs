@@ -8,6 +8,7 @@ pub struct ProfileRequest {
     pub email: String,
     pub public: bool,
     pub name: String,
+    pub age: i32,
     pub is_male: bool,
     pub nationality: String,
     pub native_language: String,
@@ -25,8 +26,6 @@ pub struct ProfileRequest {
     pub weight: i32,
     pub skin_color: String,
     pub fit: String,
-    pub age_range_min: i32,
-    pub age_range_max: i32,
     pub divorced: bool,
     pub children: bool,
     pub parents: bool,
@@ -45,14 +44,13 @@ pub struct Profile {
     pub whereabouts: Whereabouts,
     pub qualifications: Qualifications,
     pub appearance: Appearance,
-    pub age_range_min: i32,
-    pub age_range_max: i32,
     pub family: Family,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct BioData {
     pub name: String,
+    pub age: i32,
     pub is_male: bool,
     pub nationality: String,
     pub native_language: String,
